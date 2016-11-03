@@ -1,10 +1,256 @@
-(*Require Import GeoCoq.Axioms.metric_axioms.*)
+Require Import GeoCoq.Axioms.
 
-Require Import Reals.
+(*Require Import Reals.*)
 Require Export Setoid.
 
-Open Scope R_scope.
+Section FA_FULLANGLES_defs.
+  Variables FA_Point : Set.
+  Variables FA_PEq : FA_Point -> FA_Point -> Prop.
 
+  (*Definition FA_Line := fa_line_t FA_Point FA_PEq.*)
+
+  Class fa_full_angle (A B C D : TPoint) {HAB : A<>B} {HCD : C<>D}
+  : Type := {
+             (* Full Angle building properties *)
+             
+             (* case parallel lines *)
+             fa_rule_1 : forall (L1 L2 : FA_Line),
+                           FA_L_para L1 L2 ->
+                           FA_FAEq FA_Zero (FA_FullAngle_L L1 L2);
+             (* case perpendicular lines *)
+             fa_rule_2 : forall (L1 L2 : FA_Line),
+                            FA_L_perp L1 L2 ->
+                            FA_FAEq FA_One (FA_FullAngle_L L1 L2);
+             (* commutative and associative addition of full angles *)
+             fa_rule_3a : forall (FA1 FA2 :  FA_FullAngle),
+                            FA_FAEq (FA_add FA1 FA2) (FA_add FA2 FA1);
+             fa_rule_3b : forall (FA1 FA2 FA3 :  FA_FullAngle),
+                            FA_FAEq (FA_add FA1 (FA_add FA2 FA3)) (FA_add (FA_add FA1 FA2) FA3);
+             (* property of FA_One *)
+             fa_rule_4 : FA_FAEq FA_Zero (FA_add FA_One FA_One);
+             (* property of FA_Zero *)
+             fa_rule_5 : forall FA :  FA_FullAngle,
+                           FA_FAEq FA (FA_add FA FA_Zero);
+             (* case of 3 colinear points *)
+             fa_rule_6 : forall (A B Q P X : FA_Point)
+                                (HAB : A <> B)
+                                (HPX : P <> X)
+                                (HPQ : P <> Q),
+                           FA_P_col Q P X ->
+                           FA_FAEq (FA_FullAngle_P A B P X HAB HPX)
+                                   (FA_FullAngle_P A B P Q HAB HPQ);
+             (* case parallel lines *)
+             fa_rule_7 : forall (L1 L2 L3 : FA_Line),
+                           FA_L_para L2 L3 ->
+                           FA_FAEq (FA_FullAngle_L L1 L2)
+                                 (FA_FullAngle_L L1 L3);
+             (* case perpendicular lines *)
+             fa_rule_8 : forall (L1 L2 L3 : FA_Line),
+                           FA_L_perp L2 L3 ->
+                           FA_FAEq (FA_FullAngle_L L1 L2)
+                                   (FA_add (FA_FullAngle_L L1 L3)
+                                           FA_One);
+             (* case of two distance equality *)
+             fa_rule_9 : forall (A B X : FA_Point)
+                                (HAX : A <> X)
+                                (HAB : A <> B)
+                                (HXB : X <> B),
+                           FA_FAEq (FA_FullAngle_P A X A B HAX HAB)
+                                   (FA_FullAngle_P A B X B HAB HXB);
+             (* inscribed angle theorem *)
+             fa_rule_10 : forall (A B C D : FA_Point)
+                                 (HAD : A <> D)
+                                 (HCD : C <> D)
+                                 (HAB : A <> B)
+                                 (HCB : C <> B),
+                            FA_P_cycl A B C D ->
+                            FA_FAEq (FA_FullAngle_P A D C D HAD HCD)
+                                    (FA_FullAngle_P A B C B HAB HCB);
+             (* circumcenter and midpoint *)
+             fa_rule_11 : forall (A B C O M : FA_Point)
+                                 (HAO : A <> O)
+                                 (HOM : O <> M)
+                                 (HAC : A <> C)
+                                 (HBC : B <> C),
+                            FA_P_circum O A B C ->
+                            FA_P_midp M A B ->
+                            FA_FAEq (FA_FullAngle_P A O O M HAO HOM)
+                                    (FA_FullAngle_P A C B C HAC HBC);
+             (* equal distance and cyclic points *)
+             fa_rule_12 : forall (A B P M : FA_Point)
+                                 (HPA : P <> A)
+                                 (HPM : P <> M)
+                                 (HPB : P <> B),
+                            FA_P_dist M A = FA_P_dist M B ->
+                            FA_P_cycl A B P M ->
+                            FA_FAEq (FA_FullAngle_P P A P M HPA HPM)
+                                    (FA_FullAngle_P P M P B HPM HPB);
+             
+           }.
+  
+
+
+(*Open Scope R_scope.*)
+
+Section FA_POINT_defs.
+  (* Definitions related to points *)
+  Variables FA_Point : Set.
+  Variables FA_PEq : FA_Point -> FA_Point -> Prop.
+
+  Class fa_dist_t : Type
+    := build_fa_dist {
+           (* distance function *)
+           fa_p_dist : FA_Point -> FA_Point -> R;
+           (* basic properties *)
+           fa_dist_positive : forall P1 P2 : FA_Point,
+                                0 <= (fa_p_dist P1 P2);
+           fa_dist_equal : forall P1 P2 : FA_Point,
+                             (fa_p_dist P1 P2) = 0 <-> (FA_PEq P1 P2);
+           fa_dist_sym : forall P1 P2 : FA_Point,
+                           (fa_p_dist P1 P2) = (fa_p_dist P2 P1)
+         }.
+
+  (* midpoint property *)
+  Definition fa_p_midp (M A B : FA_Point) {dist : fa_dist_t} : Prop :=
+    fa_p_dist M A = fa_p_dist M B.
+
+  (* circumcenter property *)
+  Definition fa_p_circum (O A B C : FA_Point) {dist : fa_dist_t} : Prop :=
+    fa_p_dist O A = fa_p_dist O B /\
+    fa_p_dist O A = fa_p_dist O C.
+
+  Definition fa_p_cycl (A B C D : FA_Point) {dist : fa_dist_t} : Prop :=
+    exists O : FA_Point, fa_p_circum O A B C /\ fa_p_circum O A B D.
+
+End FA_POINT_defs.
+
+Section FA_LINE_defs.
+  (* Definitions related to lines *)
+  Variables FA_Point : Set.
+  Variables FA_PEq : FA_Point -> FA_Point -> Prop.
+
+  Class fa_line_t : Type := build_fa_line {A : FA_Point ; B : FA_Point ; Cond : not (FA_PEq A B)}.
+  (* Cond: A <> B}.*)
+  Variables FA_LEq : fa_line_t -> fa_line_t -> Prop.
+
+  Definition fa_p_col (A B C : FA_Point) : Prop :=
+    (FA_PEq A B)\/(FA_PEq A C)\/(FA_PEq B C)\/
+    (forall (L1 : fa_line_t) (L2 : fa_line_t) (HAB : ~ FA_PEq A B) (HAC : ~ FA_PEq A C) ,
+      FA_LEq L1 (build_fa_line A B HAB) ->
+      FA_LEq L2 (build_fa_line A C HAC) ->
+      FA_LEq L1 L2).
+
+  Variables fa_l_para : fa_line_t -> fa_line_t -> Prop.
+  Variables fa_l_perp : fa_line_t -> fa_line_t -> Prop.
+
+End FA_LINE_defs.
+
+Print fa_line_t.
+Section FA_FULLANGLES_defs.
+  Variables FA_Point : Set.
+  Variables FA_PEq : FA_Point -> FA_Point -> Prop.
+
+  Definition FA_Line := fa_line_t FA_Point FA_PEq.
+
+  Class fa_full_angle (
+  : Type := {
+             (* Full Angle building properties *)
+             
+             (* case parallel lines *)
+             fa_rule_1 : forall (L1 L2 : FA_Line),
+                           FA_L_para L1 L2 ->
+                           FA_FAEq FA_Zero (FA_FullAngle_L L1 L2);
+             (* case perpendicular lines *)
+             fa_rule_2 : forall (L1 L2 : FA_Line),
+                            FA_L_perp L1 L2 ->
+                            FA_FAEq FA_One (FA_FullAngle_L L1 L2);
+             (* commutative and associative addition of full angles *)
+             fa_rule_3a : forall (FA1 FA2 :  FA_FullAngle),
+                            FA_FAEq (FA_add FA1 FA2) (FA_add FA2 FA1);
+             fa_rule_3b : forall (FA1 FA2 FA3 :  FA_FullAngle),
+                            FA_FAEq (FA_add FA1 (FA_add FA2 FA3)) (FA_add (FA_add FA1 FA2) FA3);
+             (* property of FA_One *)
+             fa_rule_4 : FA_FAEq FA_Zero (FA_add FA_One FA_One);
+             (* property of FA_Zero *)
+             fa_rule_5 : forall FA :  FA_FullAngle,
+                           FA_FAEq FA (FA_add FA FA_Zero);
+             (* case of 3 colinear points *)
+             fa_rule_6 : forall (A B Q P X : FA_Point)
+                                (HAB : A <> B)
+                                (HPX : P <> X)
+                                (HPQ : P <> Q),
+                           FA_P_col Q P X ->
+                           FA_FAEq (FA_FullAngle_P A B P X HAB HPX)
+                                   (FA_FullAngle_P A B P Q HAB HPQ);
+             (* case parallel lines *)
+             fa_rule_7 : forall (L1 L2 L3 : FA_Line),
+                           FA_L_para L2 L3 ->
+                           FA_FAEq (FA_FullAngle_L L1 L2)
+                                 (FA_FullAngle_L L1 L3);
+             (* case perpendicular lines *)
+             fa_rule_8 : forall (L1 L2 L3 : FA_Line),
+                           FA_L_perp L2 L3 ->
+                           FA_FAEq (FA_FullAngle_L L1 L2)
+                                   (FA_add (FA_FullAngle_L L1 L3)
+                                           FA_One);
+             (* case of two distance equality *)
+             fa_rule_9 : forall (A B X : FA_Point)
+                                (HAX : A <> X)
+                                (HAB : A <> B)
+                                (HXB : X <> B),
+                           FA_FAEq (FA_FullAngle_P A X A B HAX HAB)
+                                   (FA_FullAngle_P A B X B HAB HXB);
+             (* inscribed angle theorem *)
+             fa_rule_10 : forall (A B C D : FA_Point)
+                                 (HAD : A <> D)
+                                 (HCD : C <> D)
+                                 (HAB : A <> B)
+                                 (HCB : C <> B),
+                            FA_P_cycl A B C D ->
+                            FA_FAEq (FA_FullAngle_P A D C D HAD HCD)
+                                    (FA_FullAngle_P A B C B HAB HCB);
+             (* circumcenter and midpoint *)
+             fa_rule_11 : forall (A B C O M : FA_Point)
+                                 (HAO : A <> O)
+                                 (HOM : O <> M)
+                                 (HAC : A <> C)
+                                 (HBC : B <> C),
+                            FA_P_circum O A B C ->
+                            FA_P_midp M A B ->
+                            FA_FAEq (FA_FullAngle_P A O O M HAO HOM)
+                                    (FA_FullAngle_P A C B C HAC HBC);
+             (* equal distance and cyclic points *)
+             fa_rule_12 : forall (A B P M : FA_Point)
+                                 (HPA : P <> A)
+                                 (HPM : P <> M)
+                                 (HPB : P <> B),
+                            FA_P_dist M A = FA_P_dist M B ->
+                            FA_P_cycl A B P M ->
+                            FA_FAEq (FA_FullAngle_P P A P M HPA HPM)
+                                    (FA_FullAngle_P P M P B HPM HPB);
+             
+           }.
+  
+
+
+
+
+  
+    (***********************************************************************************)
+    
+  
+  Definition fa_dist_type := @fa_dist_pr 
+  Definition fa_p_midp (M A B : FA_Point) : Prop
+           (* midpoint related *)
+           fa_dist_midp : forall P1 P2 P3 : FA_Point,
+                            FA_P_midp P2 P1 P3 ->
+                            FA_P_dist P1 P2 = FA_P_dist P2 P3;
+           (* circumcenter related *)
+           fa_dist_circum : forall O A B C : FA_Point,
+                              FA_P_circum O A B C ->
+                              FA_P_dist O A = FA_P_dist O B /\
+                              FA_P_dist O A = FA_P_dist O C
+         }.
 
 
 Section full_angle_class.
@@ -25,8 +271,8 @@ Section full_angle_class.
   (* Properties *)
   Variables FA_P_col : FA_Point -> FA_Point -> FA_Point -> Prop.
   Variables FA_P_cycl : FA_Point -> FA_Point -> FA_Point -> FA_Point -> Prop.
-  Variables FA_P_midp : FA_Point -> FA_Point -> FA_Point -> Prop.
-  Variables FA_P_circum : FA_Point -> FA_Point -> FA_Point -> FA_Point -> Prop.
+  (*Variables FA_P_midp : FA_Point -> FA_Point -> FA_Point -> Prop.*)
+  (*Variables FA_P_circum : FA_Point -> FA_Point -> FA_Point -> FA_Point -> Prop.*)
   Variables FA_L_para : FA_Line -> FA_Line -> Prop.
   Variables FA_L_perp : FA_Line -> FA_Line -> Prop.
 
