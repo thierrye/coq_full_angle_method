@@ -1,6 +1,19 @@
-forall a b c d e f g: FA_Point,
-FA_P_foot  d  c  a  b  ->FA_P_foot  e  b  a  c  ->FA_P_midp  f  b  c  ->FA_P_midp  g  d  e  ->
-FA_P_perp  f  g  d  e  .
+
+Require Import GeoCoq.Highschool.Orthocenter.
+
+Section Orthocenter.
+
+Context `{TE:Tarski_2D_euclidean}.
+
+Definition Foot d c a b := Col  /\ Perp  .
+
+Lemma ex1 : forall a b c d e f g: TPoint,
+Foot  d  c  a  b  -> Foot e  b  a  c  -> Midpoint  f  b  c  -> Midpoint  g  d  e  -> Perp  f  g  d  e .
+Proof.
+Admitted.
+
+End Section.
+
 forall a b c a1 b1 c1 o: FA_Point,
 FA_P_midp  a1  b  c  ->FA_P_midp  b1  a  c  ->FA_P_midp  c1  a  b  ->FA_P_circum  o  a  b  c  ->
 FA_P_perp  o  a1  b1  c1  .
@@ -98,6 +111,7 @@ FA_P_pbisector  a  o  o1  .
 forall a b c o h a1 c1: FA_Point,
 FA_P_circum  o  a  b  c  ->FA_P_orthoc  h  a  b  c  ->FA_P_col  a1  a  h  ->FA_P_cong  o  a  o  a1  ->FA_P_col  c1  c  h  ->FA_P_cong  o  a  o  c1  ->
 FA_P_pbisector  b  a1  c1  .
+
 forall a b c o d d1 p: FA_Point,
 forall a b c i m l1: FA_Point,
 FA_P_incenter  i  a  b  c  ->FA_P_cycl  a  b  c  m  l1  ->FA_P_col  m  i  c  ->FA_P_perp  b  l1  b  i  ->
