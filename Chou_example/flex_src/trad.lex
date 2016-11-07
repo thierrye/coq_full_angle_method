@@ -1027,15 +1027,16 @@ int main(int argc,char **argv)
 	output_file = stderr;
       }
     else{
-      output_file = fopen(argv[2],"a");
-      //fprintf(stderr,"argv2 is %s null is %d\n",argv[2],(int)NULL);
+      output_file = fopen(argv[2],"w");
+      fprintf(stderr,"argv2 is %s\n",argv[2]);
       //yyout = fopen(argv[2],"a");
-      if(output_file == NULL);
+      fprintf(output_file,"Check\n");
+      /*if(output_file == NULL);
       {
 	perror("fopen out");
 	fprintf(stderr,"%s\n",strerror(errno));
 	return 3;
-      }
+	}*/
     }
     //global var decl
     current_pos = OUT_POS;
