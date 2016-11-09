@@ -42,14 +42,14 @@ Section FA_FULLANGLES_defs.
                 fa_rule_1 : forall (A B C D : FA_Point)
                                    (HAB : A<>B)
                                    (HCD : C<>D),
-                              FA_P_para A B C D ->
+                              FA_P_para A B C D <->
                               FAEq FA_Zero
                                    (FA_P_to_FA A B C D);
                 (* case perpendicular lines *)
                 fa_rule_2 : forall (A B C D : FA_Point)
                                    (HAB : A<>B)
                                    (HCD : C<>D),
-                              FA_P_perp A B C D ->
+                              FA_P_perp A B C D <->
                               FAEq FA_One
                                    (FA_P_to_FA A B C D);
                 (* commutative and associative addition of full angles *)
